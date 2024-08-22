@@ -51,14 +51,12 @@ class EGCN(torch.nn.Module):
         self.renorm_order = renorm_order
         self.rnn = rnn
         self.act = torch.nn.ReLU()
-
         if rnn == 'LSTM':
             GNN = GConvLSTM
         elif rnn == 'GRU':
             GNN = GConvGRU
         else:
             raise NotImplementedError('no such RNN model {}'.format(rnn))
-
         for layer in range(len(dimensions)-1):
             self.layers.append(
                 GNN(dimensions[layer], dimensions[layer+1], normalize=False).to(device)
@@ -66,7 +64,6 @@ class EGCN(torch.nn.Module):
             self.norms.append(
                 torch.nn.BatchNorm1d(dimensions[layer+1], device=device)
             )
-
     def norm(self, X, normfn):
         """
         Parameters
@@ -129,11 +126,6 @@ class EGCN(torch.nn.Module):
             feature = self.dropout(self.act(self.norm(torch.stack(Hs), norm)))
 
         return feature[start:, :, :]
-
-# Original GCRN models used Chebyshev GCN, but we modified it to use Kipf's GCN due to memory limitation.
-# Below models are based on the source code from pytorch geometric temporal
-# See https://pytorch-geometric-temporal.readthedocs.io/en/latest/modules/root.html
-
 class GConvGRU(torch.nn.Module):
     def __init__(
         self,
@@ -149,7 +141,6 @@ class GConvGRU(torch.nn.Module):
         self.normalize = normalize
         self.bias = bias
         self._create_parameters_and_layers()
-
     def _create_update_gate_parameters_and_layers(self):
 
         self.conv_x_z = GCNConv(

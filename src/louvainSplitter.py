@@ -20,7 +20,6 @@ class LouvainSplitter(BaseTransform, BaseSplitter):
     def __init__(self, client_num, delta=20):
         self.delta = delta
         BaseSplitter.__init__(self, client_num)
-
     def __call__(self, data, dataset, **kwargs):
         data.index_orig = torch.arange(data.num_nodes)
         G = to_networkx(
@@ -32,7 +31,6 @@ class LouvainSplitter(BaseTransform, BaseSplitter):
                                      for nid in range(nx.number_of_nodes(G))]),
                                name="index_orig")
         partition = community_louvain.best_partition(G)
-
         cluster2node = {}
         for node in partition:
             cluster = partition[node]
@@ -40,10 +38,8 @@ class LouvainSplitter(BaseTransform, BaseSplitter):
                 cluster2node[cluster] = [node]
             else:
                 cluster2node[cluster].append(node)
-
         max_len = len(G) // self.client_num - self.delta
         max_len_client = len(G) // self.client_num
-
         tmp_cluster2node = {}
         for cluster in cluster2node:
             while len(cluster2node[cluster]) > max_len:
@@ -52,10 +48,8 @@ class LouvainSplitter(BaseTransform, BaseSplitter):
                                  1] = tmp_cluster
                 cluster2node[cluster] = cluster2node[cluster][max_len:]
         cluster2node.update(tmp_cluster2node)
-
         orderedc2n = (zip(cluster2node.keys(), cluster2node.values()))
         orderedc2n = sorted(orderedc2n, key=lambda x: len(x[1]), reverse=True)
-
         client_node_idx = {idx: [] for idx in range(self.client_num)}
         idx = 0
         for (cluster, node_list) in orderedc2n:
@@ -64,7 +58,6 @@ class LouvainSplitter(BaseTransform, BaseSplitter):
                 idx = (idx + 1) % self.client_num
             client_node_idx[idx] += node_list
             idx = (idx + 1) % self.client_num
-
         graphs = []
         x_shapes = []
         edge_shapes = []
